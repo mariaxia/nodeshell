@@ -1,41 +1,37 @@
 const fs = require('fs');
+const request = require('request');
 
 module.exports = {
-  date: function(files){
+  date: function(files, done){
     let date = new Date();
-    process.stdout.write(date.toString());
-    process.stdout.write('\nprompt > ');
+    done(date.toString());
   },
-  pwd: function(files){
-    process.stdout.write(process.env.PWD);
-    process.stdout.write('\nprompt > ');
-  },
-  ls: function(files){
-    let directory = process.env.PWD;
-    // fs.readdir(path[, options], callback(err, files))
 
+  pwd: function(files, done){
+    done(process.env.PWD);
+  },
+
+  ls: function(files, done){
+    let directory = process.env.PWD;
+    let output = '';
     fs.readdir(directory, function(err, files){
       if (err) throw err;
       files.forEach(function(file){
-        process.stdout.write(file.toString() + '\n');
+        output += file.toString() + '\n';
       });
     });
-    // let files = fs.readdirSync(directory);
-    // files.forEach(function(file){
-    //   process.stdout.write(file.toString() + '\n');
-    // });
-    setTimeout( function(){ process.stdout.write('prompt > ')}, 5 );
+    done(output);
   },
-  echo: function(files){
+
+  echo: function(files, done){
     let string = '';
     files.forEach(function(file){
       string += file + ' ';
     });
-    process.stdout.write(string.trim());
-    process.stdout.write('\nprompt > ');
+    done(string.trim());
   },
 
-  cat: function (files){
+  cat: function (files, done){
     //get access to file using fs
     //output the contents of the file
     let counter = 0;
@@ -47,40 +43,74 @@ module.exports = {
         contentsArr[i] = contents;
         counter++;
         if (counter === files.length){
-          process.stdout.write(contentsArr.join('').toString());
-          process.stdout.write('\nprompt > ');
+          done(contentsArr.join('').toString());
         }
       });
     }
   },
 
-  head: function (files){
+  head: function (files, done){
     fs.readFile(files[0], function(err, contents){
       if (err) throw err;
       let output = contents.toString().split('\n');
       output = output.slice(0, 5);
-      process.stdout.write(output.join('\n').toString());
-      process.stdout.write('\nprompt > ');
+      done(output.join('\n').toString());
     });
   },
 
-  tail: function (files){
+  tail: function (files, done){
     fs.readFile(files[0], function(err, contents){
       if (err) throw err;
       let output = contents.toString().split('\n');
       output = output.slice(-5);
-      process.stdout.write(output.join('\n').toString());
-      process.stdout.write('\nprompt > ');
+      done(output.join('\n').toString());
     });
   },
 
-  sort: function (files){
+  // TODO: sort lexicographically, not with [].sort
+  sort: function (files, done){
     fs.readFile(files[0], function(err, contents){
       if (err) throw err;
        let output = contents.toString().split('\n');
       output = output.sort();
-      process.stdout.write(output.join('\n').toString());
-      process.stdout.write('\nprompt > ');
+      done(output.join('\n').toString());
+    });
+  },
+
+  wc: function (files, done){
+    fs.readFile(files[0], function(err, contents){
+      if (err) throw err;
+      const output = contents.toString().split('\n');
+      const lines = output.length;
+      done(lines.toString());
+    });
+  },
+
+  uniq: function (files, done){
+    fs.readFile(files[0], function(err, contents){
+      if (err) throw err;
+      let output = contents.toString().split('\n'),
+      i = 1;
+      while (i < output.length){
+        if (output[i-1] === output[i]){
+          output.splice(i-1, 1);
+        } else {
+          i++;
+        }
+      }
+      done(output.join(''));
+    });
+  },
+
+  curl: function(files, done){
+    let url = files[0];
+    request(url, function(err, response, body){
+      if (err) throw err;
+      if (response.statusCode === 200)
+        done(body);
+      else {
+        process.stdout.write("Error: " + response.statusCode);
+      }
     });
   }
 };

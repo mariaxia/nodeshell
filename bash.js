@@ -5,10 +5,15 @@ process.stdin.on('data', function(data){
   const input = data.toString().trim().split(' ');
   const cmd = input[0];
   const args = input.slice(1);
-  if (cmd in bash){
-    bash[cmd](args);
 
+  if (cmd in bash){
+    bash[cmd](args, done = function(string){
+      process.stdout.write(string);
+      process.stdout.write('\nprompt > ');
+    });
   } else {
-    throw new Error('invalid command');
+    console.error('Invalid command: ' + cmd);
+    process.stdout.write('\nprompt > ');
+    return;
   }
 });
