@@ -15,7 +15,7 @@ process.stdin.on('data', function(data){
   if (cmd === 'ls'){
     bash.ls();
   }
-  if (cmd == 'echo'){
+  if (cmd === 'echo'){
     bash.echo(args);
   }
 });
